@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 from utils import create_session
 
 
@@ -10,4 +10,9 @@ def get_session():
         session.close()
 
 
-app = FastAPI()
+router = APIRouter()
+
+
+@router.post('/users/sign_up', tags=['users'])
+def create_users():
+    pass
