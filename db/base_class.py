@@ -8,7 +8,7 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    phone = Column(String(10))  # 핸드폰 번호 벨리데이터 필요
+    phone = Column(String(20))  # 핸드폰 번호 벨리데이터 필요
     password = Column(String(100))  # 패스워드 암호화 시킬 예정
 
 
