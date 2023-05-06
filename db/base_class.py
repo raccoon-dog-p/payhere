@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.dialects import mysql
+from sqlalchemy.sql import func
 
 Base = declarative_base()
 
@@ -20,7 +21,9 @@ class Item(Base):
     price = Column(mysql.INTEGER(7), comment='판매 가격')
     cost = Column(mysql.INTEGER(7), comment='원가')
     product_name = Column(String(100), comment='상품 이름')
-    product_detail = Column(String(500), nullable=True, comment='상품 설명')
+    product_detail = Column(String(500), comment='상품 설명')
     barcode = Column(mysql.INTEGER(13), comment='바코드')
     expiration_date = Column(DateTime(), comment='유통 기한')
-    size = Column(String(10), nullable=True, comment='사이즈 small or large')
+    size = Column(String(10), comment='사이즈 small or large')
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

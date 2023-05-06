@@ -8,4 +8,4 @@ class Meta(BaseModel):
 
 class ResponseModel(BaseModel):
     meta: Meta
-    data: dict | None
+    data: dict | None | list

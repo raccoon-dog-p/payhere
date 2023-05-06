@@ -8,11 +8,7 @@ from sqlalchemy.orm import scoped_session
 from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
 import jwt
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
-SECRET_KEY = "d4e2959b68a3d0277103c67a041e6a88a3f1644a86dccf451baad3e6956b68b4"
-ALGORITHM = "HS256"
-
+from config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
 router = APIRouter(
     prefix='/users',
@@ -27,7 +23,7 @@ def create_users(request_model: UsersModel, db: scoped_session = Depends(get_ses
         code = 400
     # 유효성 검사 성공
     else:
-        code = 200
+        code = 201
         # 회원 DB 등록
         db_user = User(
             phone=request_model.phone,
@@ -45,9 +41,11 @@ def login(request_model: UsersModel, db: scoped_session = Depends(get_session)):
     validation = is_match_user(request_model.phone, request_model.password, db)
     if validation[0]:
         code = 200
+        user_id = db.query(User).filter(request_model.phone == User.phone).first().id
         data = {
-            'sub': request_model.phone,
-            'exp': datetime.now() + timedelta(ACCESS_TOKEN_EXPIRE_MINUTES)
+            'user_id': user_id,
+            'phone': request_model.phone,
+            'exp': datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         }
         access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
         token_type = 'Bearer '

@@ -1,8 +1,10 @@
-from config import engine, ENCRYPT_KEY
+from config import engine, ENCRYPT_KEY, SECRET_KEY, ALGORITHM
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import func, select
 from db.base_class import User
 import re
+import jwt
+from jwt.exceptions import ExpiredSignatureError
 
 
 def create_session() -> scoped_session:
@@ -155,3 +157,70 @@ def is_match_user(phone_number: str, password: str, session: scoped_session) -> 
         status = False
         msg = '존재하지 않는 핸드폰 번호입니다. 회원가입 해주세요!'
     return status, msg
+
+
+def validate_jwt(authorizaion: str | None) -> tuple[int, bool, str]:
+    """ jwt 유효성 검사
+
+    Args:
+        request (Request): fastapi Request 객체
+
+    Returns:
+        tuple[int, bool, str]: 에러 코드, status, 메시지 순 반환
+    """
+    if authorizaion:
+        authorizaion = authorizaion.replace('Bearer ', '')
+        status, msg = _validate_expire_jwt(authorizaion)
+        if not status:
+            code = 401
+        else:
+            code = 200
+    else:
+        print(authorizaion)
+        code = 401
+        status = False
+        msg = '유효하지 않은 요청입니다. 로그인 해주세요'
+    return code, status, msg
+
+
+def _validate_expire_jwt(jwt_token: str) -> tuple[bool, str]:
+    """jwt 유효기간 검사 함수
+
+    Args:
+        jwt_token (str): access_token
+
+    Returns:
+        tuple[int, bool, str]: 에러 코드, status, 메시지 순 반환
+    """
+    try:
+        jwt.decode(jwt_token, SECRET_KEY, ALGORITHM)
+        status = True
+        msg = 'ok'
+    except ExpiredSignatureError:
+        status = False
+        msg = '로그인 유효시간이 지났습니다. 다시 로그인 해주세요.'
+    finally:
+        return status, msg
+
+
+# def get_token_by_header(request: Request) -> str | None:
+#     """요청의 헤더에서 jwt token 반환 함수
+
+#     Args:
+#         request (Request): Fastapi Request
+
+#     Returns:
+#         str | None: 있을시 토큰반환, 없을 시 None
+#     """
+#     token = request.headers.get('Authorization', None)
+#     if token:
+#         access_token = token.replace('Bearer ', '')
+#     else:
+#         access_token = None
+#     return access_token
+
+
+def decode_jwt(token: str) -> dict:
+    token = token.replace('Bearer ', '')
+    decode_jwt = jwt.decode(token, SECRET_KEY, ALGORITHM)
+    return decode_jwt
